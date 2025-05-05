@@ -1,8 +1,26 @@
 # root/main.tf
 
 provider "google" {
+  credentials = file("/Users/avsvishal/Desktop/DevOps/gcp.json")
   project = var.project_id
   region  = var.region
+}
+
+resource "google_storage_bucket" "function_bucket" {
+  name     = "gcp-optimizer"
+  location = "US"
+
+  uniform_bucket_level_access = true
+}
+
+resource "google_project_service" "required_apis" {
+  for_each = toset([
+    "cloudbilling.googleapis.com",
+    "billingbudgets.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+  ])
+  project = var.project_id
+  service = each.key
 }
 
 module "billing_export" {

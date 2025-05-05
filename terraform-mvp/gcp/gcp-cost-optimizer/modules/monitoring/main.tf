@@ -7,7 +7,7 @@ resource "google_project_service" "monitoring_api" {
   ])
   project            = var.project_id
   service            = each.key
-  disable_on_destroy = false
+  disable_on_destroy = true
 }
 
 resource "google_monitoring_notification_channel" "email" {
