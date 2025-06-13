@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+    tools {
+        maven 'M3'
+    }
+    stages {
+        stage('SCM checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/GopiKrishna-2511/cloudseals.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        stage('SonarQube Analysis') {
+          steps {
+            withSonarQubeEnv('sonar') {
+                sh "mvn clean verify sonar:sonar -Dsonar.projectKey=cseals-backened -Dsonar.projectName='cseals-backened'"
+            }
+          }
+        }
+        stage('SonarQuality Gate') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    sleep 20
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+        stage('Post Build Actions') {
+            parallel {
+                stage('Archive Artifacts') {
+                    steps {
+                        archiveArtifacts artifacts: 'target/*.jar', followSymlinks: false
+                    }
+                }
+                stage('JUnit Test reports') {
+                    steps {
+                        junit stdioRetention: '', testResults: 'target/surefire-reports/*.xml'
+                    }
+                }
+            }
+        }
+    }
+}
