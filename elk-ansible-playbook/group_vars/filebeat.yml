@@ -1,0 +1,4 @@
+logstash_host: "34.126.208.236"
+logstash_port: 5044
+elasticsearch_url: "http://34.131.78.74:9200"
+apache_logs_path: "/var/log/apache2/*.log"

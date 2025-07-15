@@ -1,0 +1,26 @@
+- name: Install OpenJDK 17
+  apt:
+    name: openjdk-17-jdk
+    state: present
+    update_cache: yes
+
+- name: Install Logstash
+  apt:
+    name: logstash
+    state: present
+    update_cache: yes
+
+- name: Copy Logstash pipeline
+  template:
+    src: apache.conf.j2
+    dest: "/etc/logstash/conf.d/{{ logstash_pipeline_config }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart logstash
+
+- name: Enable and start Logstash
+  systemd:
+    name: logstash
+    enabled: yes
+    state: started

@@ -1,0 +1,8 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - {{ apache_logs_path }}
+
+output.logstash:
+  hosts: ["{{ logstash_host }}:{{ logstash_port }}"]

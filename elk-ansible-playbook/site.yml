@@ -1,0 +1,24 @@
+# site.yml
+- name: Setup Elasticsearch
+  hosts: elasticsearch
+  become: yes
+  roles:
+    - { role: elasticsearch, tags: ['elasticsearch'] }
+
+- name: Setup Kibana
+  hosts: kibana
+  become: yes
+  roles:
+    - { role: kibana, tags: ['kibana'] }
+
+- name: Setup Logstash
+  hosts: logstash
+  become: yes
+  roles:
+    - { role: logstash, tags: ['logstash'] }
+
+- name: Setup Filebeat
+  hosts: apache_client
+  become: yes
+  roles:
+    - { role: filebeat, tags: ['filebeat'] }

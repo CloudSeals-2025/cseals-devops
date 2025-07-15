@@ -1,0 +1,2 @@
+logstash_pipeline_config: apache.conf
+logstash_listen_port: 5044

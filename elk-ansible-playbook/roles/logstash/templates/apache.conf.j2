@@ -1,0 +1,15 @@
+input {
+  beats {
+    port => {{ logstash_listen_port }}
+  }
+}
+filter {
+  grok {
+    match => { "message" => "%{COMMONAPACHELOG}" }
+  }
+}
+output {
+  elasticsearch {
+    hosts => ["{{ elasticsearch_url }}"]
+  }
+}

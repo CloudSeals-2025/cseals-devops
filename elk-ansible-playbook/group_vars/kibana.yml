@@ -1,0 +1,3 @@
+kibana_server_host: "34.131.95.213"
+kibana_server_port: 5601
+elasticsearch_url: "http://34.131.78.74:9200"
