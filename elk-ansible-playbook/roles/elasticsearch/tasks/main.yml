@@ -4,6 +4,11 @@
     state: present
     update_cache: yes
 
+- name: Ensure gnupg is installed (required for apt_key)
+  apt:
+    name: gnupg
+    state: present
+
 - name: Add Elastic GPG key
   apt_key:
     url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
@@ -27,7 +32,7 @@
     dest: /etc/elasticsearch/elasticsearch.yml
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   notify: restart elasticsearch
 
 - name: Enable and start Elasticsearch
