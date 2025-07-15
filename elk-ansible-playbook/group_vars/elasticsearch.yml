@@ -1,2 +1,8 @@
-elasticsearch_network_host: "34.131.78.74"
-elasticsearch_http_port: 9200
+node_name: "node-1"
+path_data: "/var/lib/elasticsearch"
+path_logs: "/var/log/elasticsearch"
+bootstrap_memory_lock: false
+network_host: "10.190.0.3"
+http_port: 9200
+discovery_seed_hosts: '["34.131.78.74"]'
+discovery_type: "single-node"

@@ -1,4 +1,8 @@
-network.host: {{ elasticsearch_network_host }}
-http.port: {{ elasticsearch_http_port }}
-discovery.type: single-node
-xpack.security.enabled: false
+node.name: {{ node_name }}
+path.data: {{ path_data }}
+path.logs: {{ path_logs }}
+bootstrap.memory_lock: {{ bootstrap_memory_lock }}
+network.host: {{ network_host }}
+http.port: {{ http_port }}
+discovery.seed_hosts: {{ discovery_seed_hosts }}
+discovery.type: {{ discovery_type }}
