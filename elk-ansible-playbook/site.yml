@@ -18,7 +18,7 @@
 #     - { role: logstash, tags: ['logstash'] }
 
 - name: Setup Filebeat
-  hosts: apache_client
+  hosts: filebeat
   become: yes
   roles:
     - { role: filebeat, tags: ['filebeat'] }
