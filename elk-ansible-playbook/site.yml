@@ -5,11 +5,11 @@
 #   roles:
 #     - { role: elasticsearch, tags: ['elasticsearch'] }
 
-- name: Setup Kibana
-  hosts: kibana
-  become: yes
-  roles:
-    - { role: kibana, tags: ['kibana'] }
+# - name: Setup Kibana
+#   hosts: kibana
+#   become: yes
+#   roles:
+#     - { role: kibana, tags: ['kibana'] }
 
 - name: Setup Logstash
   hosts: logstash
