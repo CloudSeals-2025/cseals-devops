@@ -3,8 +3,6 @@ filebeat.inputs:
     enabled: true
     paths:
       - {{ apache_logs_path }}
-      - /var/log/*.log
-      - /var/log/**/*.log
 
 filebeat.config.modules:
   path: /etc/filebeat/modules.d/*.yml
