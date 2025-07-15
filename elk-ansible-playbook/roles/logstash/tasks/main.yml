@@ -4,6 +4,28 @@
     state: present
     update_cache: yes
 
+- name: Install gnupg and apt-transport-https
+  apt:
+    name:
+      - gnupg
+      - apt-transport-https
+    state: present
+    update_cache: yes
+
+- name: Add Elastic GPG key
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+
+- name: Add Elastic APT repository
+  apt_repository:
+    repo: 'deb https://artifacts.elastic.co/packages/7.x/apt stable main'
+    state: present
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
 - name: Install Logstash
   apt:
     name: logstash
