@@ -1,3 +1,9 @@
+- name: Ensure gnupg is installed (required for apt_key)
+  apt:
+    name: gnupg
+    state: present
+    update_cache: yes
+
 - name: Add Elastic GPG key
   apt_key:
     url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
