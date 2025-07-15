@@ -6,5 +6,9 @@ filebeat.inputs:
       - /var/log/*.log
       - /var/log/**/*.log
 
+filebeat.config.modules:
+  path: /etc/filebeat/modules.d/*.yml
+  reload.enabled: false
+
 output.logstash:
   hosts: ["{{ logstash_host }}:{{ logstash_port }}"]
