@@ -2,6 +2,7 @@ filebeat.inputs:
   - type: log
     enabled: true
     paths:
+      - {{ apache_logs_path }}
       - /var/log/*.log
       - /var/log/**/*.log
 

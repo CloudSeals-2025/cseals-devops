@@ -11,11 +11,11 @@
 #   roles:
 #     - { role: kibana, tags: ['kibana'] }
 
-- name: Setup Logstash
-  hosts: logstash
-  become: yes
-  roles:
-    - { role: logstash, tags: ['logstash'] }
+# - name: Setup Logstash
+#   hosts: logstash
+#   become: yes
+#   roles:
+#     - { role: logstash, tags: ['logstash'] }
 
 - name: Setup Filebeat
   hosts: apache_client

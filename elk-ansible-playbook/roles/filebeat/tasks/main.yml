@@ -1,6 +1,6 @@
-- name: Download Filebeat 8.x
+- name: Download Filebeat 7.17.29
   get_url:
-    url: https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.14.0-amd64.deb
+    url: https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.17.29-amd64.deb
     dest: /tmp/filebeat.deb
 
 - name: Install Filebeat
@@ -14,6 +14,7 @@
     owner: root
     group: root
     mode: 0644
+  notify: restart filebeat
 
 - name: Enable Apache and System modules
   shell: |
@@ -21,9 +22,10 @@
     filebeat modules enable apache
   args:
     creates: /etc/filebeat/modules.d/apache.yml
+  notify: restart filebeat
 
-- name: Restart Filebeat
+- name: Ensure Filebeat is enabled and started
   systemd:
     name: filebeat
     enabled: yes
-    state: restarted
+    state: started
