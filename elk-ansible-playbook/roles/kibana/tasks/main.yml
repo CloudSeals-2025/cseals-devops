@@ -4,22 +4,16 @@
     state: present
     update_cache: yes
 
-- name: Add Elastic GPG key
-  apt_key:
-    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
-    state: present
+- name: Download Kibana 7.17.29 Debian package
+  get_url:
+    url: https://artifacts.elastic.co/downloads/kibana/kibana-7.17.29-amd64.deb
+    dest: /tmp/kibana-7.17.29-amd64.deb
+    mode: '0644'
 
-- name: Add Elastic APT repository
-  apt_repository:
-    repo: 'deb https://artifacts.elastic.co/packages/8.x/apt stable main'
-    filename: 'elastic-8.x'
-    state: present
-
-- name: Install Kibana
+- name: Install Kibana 7.17.29 package
   apt:
-    name: kibana
+    deb: /tmp/kibana-7.17.29-amd64.deb
     state: present
-    update_cache: yes
 
 - name: Configure Kibana
   template:
@@ -30,7 +24,7 @@
     mode: 0644
   notify: restart kibana
 
-- name: Enable and start Kibana
+- name: Enable and start Kibana service
   systemd:
     name: kibana
     enabled: yes
