@@ -1,0 +1,72 @@
+---
+- name: Install Filebeat
+  get_url:
+    url: "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-{{ filebeat_version }}-linux-x86_64.tar.gz"
+    dest: "/tmp/filebeat-{{ filebeat_version }}-linux-x86_64.tar.gz"
+    mode: '0644'
+
+- name: Extract Filebeat
+  unarchive:
+    src: "/tmp/filebeat-{{ filebeat_version }}-linux-x86_64.tar.gz"
+    dest: /opt/
+    remote_src: yes
+    creates: "/opt/filebeat-{{ filebeat_version }}-linux-x86_64"
+
+- name: Create Filebeat symlink
+  file:
+    src: "/opt/filebeat-{{ filebeat_version }}-linux-x86_64"
+    dest: /opt/filebeat
+    state: link
+
+- name: Create Filebeat configuration directory
+  file:
+    path: /etc/filebeat
+    state: directory
+    mode: '0755'
+
+- name: Create Filebeat modules directory
+  file:
+    path: /etc/filebeat/modules.d
+    state: directory
+    mode: '0755'
+
+- name: Configure Filebeat for security monitoring
+  template:
+    src: filebeat_security.yml.j2
+    dest: /etc/filebeat/filebeat.yml
+    backup: yes
+  notify: restart filebeat
+
+- name: Configure system security module
+  template:
+    src: system_security.yml.j2
+    dest: /etc/filebeat/modules.d/system.yml
+    backup: yes
+  notify: restart filebeat
+
+- name: Configure auditd security module
+  template:
+    src: auditd_security.yml.j2
+    dest: /etc/filebeat/modules.d/auditd.yml
+    backup: yes
+  notify: restart filebeat
+
+- name: Enable security-specific Filebeat modules
+  shell: "/opt/filebeat/filebeat modules enable {{ item }}"
+  loop: "{{ security_modules }}"
+  notify: restart filebeat
+
+- name: Create Filebeat systemd service
+  template:
+    src: filebeat.service.j2
+    dest: /etc/systemd/system/filebeat.service
+  notify:
+    - reload systemd
+    - restart filebeat
+
+- name: Start and enable Filebeat service
+  systemd:
+    name: filebeat
+    state: started
+    enabled: yes
+    daemon_reload: yes

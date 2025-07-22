@@ -1,0 +1,19 @@
+# System module configuration for security monitoring
+- module: system
+  syslog:
+    enabled: true
+    var.paths: ["/var/log/syslog", "/var/log/messages"]
+
+  auth:
+    enabled: true
+    var.paths: ["/var/log/auth.log", "/var/log/secure"]
+    # Focus on security events for AI training
+    include_lines: [
+      'Failed password',
+      'Invalid user', 
+      'authentication failure',
+      'sudo.*COMMAND',
+      'su.*session opened',
+      'ssh.*Accepted',
+      'ssh.*Failed'
+    ]

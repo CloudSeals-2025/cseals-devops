@@ -1,0 +1,43 @@
+# Security Configuration Variables for ELK Stack
+elk_cluster_name: "security-monitoring-cluster"
+elasticsearch_host: "192.168.1.100"
+elasticsearch_port: 9200
+logstash_port: 5044
+kibana_port: 5601
+
+# Security monitoring settings
+enable_elasticsearch_audit: true
+enable_advanced_threat_detection: true
+ai_training_data_retention: "90d"
+
+# Security use case configurations
+brute_force_threshold: 10
+insider_threat_keywords:
+  - "rm -rf"
+  - "dd if="
+  - "nc -l" 
+  - "wget http"
+  - "curl http"
+  - "chmod +x"
+  - "base64 -d"
+
+lateral_movement_indicators:
+  - "psexec"
+  - "wmic"
+  - "powershell"
+  - "ssh -L"
+  - "netsh"
+  - "sc create"
+
+# Filebeat configuration
+filebeat_version: "8.11.0"
+security_modules:
+  - system
+  - auditd
+  - security
+  - threatintel
+
+# Elasticsearch index settings
+security_index_shards: 1
+security_index_replicas: 1
+security_data_retention_days: 90

@@ -1,0 +1,102 @@
+---
+- name: Install Java (required for Elasticsearch)
+  package:
+    name: openjdk-11-jdk
+    state: present
+
+- name: Add Elastic repository key
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+
+- name: Add Elastic repository
+  apt_repository:
+    repo: "deb https://artifacts.elastic.co/packages/8.x/apt stable main"
+    state: present
+
+- name: Install Elasticsearch
+  package:
+    name: elasticsearch
+    state: present
+
+- name: Configure Elasticsearch
+  template:
+    src: elasticsearch.yml.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+    backup: yes
+  notify: restart elasticsearch
+
+- name: Configure Elasticsearch JVM options
+  template:
+    src: jvm.options.j2
+    dest: /etc/elasticsearch/jvm.options
+    backup: yes
+  notify: restart elasticsearch
+
+- name: Enable Elasticsearch audit logging
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    line: "xpack.security.audit.enabled: {{ enable_elasticsearch_audit | lower }}"
+    create: yes
+    backup: yes
+  notify: restart elasticsearch
+  when: enable_elasticsearch_audit
+
+- name: Configure audit log events
+  blockinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    block: |
+      xpack.security.audit.logfile.events.include: [
+        "access_denied", 
+        "access_granted", 
+        "anonymous_access_denied", 
+        "authentication_failed", 
+        "connection_denied", 
+        "tampered_request", 
+        "run_as_denied", 
+        "run_as_granted", 
+        "security_config_change"
+      ]
+      xpack.security.audit.logfile.events.emit_request_body: true
+    marker: "# {mark} ANSIBLE MANAGED - Security Audit Configuration"
+  notify: restart elasticsearch
+  when: enable_elasticsearch_audit
+
+- name: Start and enable Elasticsearch service
+  systemd:
+    name: elasticsearch
+    state: started
+    enabled: yes
+
+- name: Wait for Elasticsearch to start
+  uri:
+    url: "http://{{ ansible_default_ipv4.address }}:{{ elasticsearch_port }}"
+    method: GET
+    status_code: 200
+  retries: 5
+  delay: 10
+
+- name: Create security audit log index template
+  uri:
+    url: "http://{{ ansible_default_ipv4.address }}:{{ elasticsearch_port }}/_index_template/security-audit-logs"
+    method: PUT
+    body_format: json
+    body:
+      index_patterns: ["security-audit-*"]
+      template:
+        settings:
+          number_of_shards: "{{ security_index_shards }}"
+          number_of_replicas: "{{ security_index_replicas }}"
+        mappings:
+          properties:
+            "@timestamp":
+              type: date
+            user:
+              type: keyword
+            action:
+              type: keyword
+            source_ip:
+              type: ip
+            event_type:
+              type: keyword
+    status_code: 200

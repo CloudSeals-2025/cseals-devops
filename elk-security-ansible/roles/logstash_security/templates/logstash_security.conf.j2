@@ -1,0 +1,116 @@
+# Logstash Security Pipeline Configuration for AI Training
+input {
+  beats {
+    port => {{ logstash_port }}
+  }
+}
+
+filter {
+  # SSH Brute Force Detection Processing
+  if [logtype] == "authentication" {
+    grok {
+      match => { 
+        "message" => "%{SYSLOGTIMESTAMP:timestamp} %{HOSTNAME:hostname} sshd\[%{POSINT:pid}\]: Failed password for %{USERNAME:failed_user} from %{IP:source_ip} port %{POSINT:port} ssh2"
+      }
+      add_tag => [ "ssh_failed_auth" ]
+    }
+
+    # Count failed attempts for brute force detection
+    if "ssh_failed_auth" in [tags] {
+      mutate {
+        add_field => { "security_event" => "brute_force_attempt" }
+        add_field => { "severity" => "medium" }
+      }
+    }
+  }
+
+  # Insider Threat Detection - Unusual sudo usage
+  if [message] =~ /sudo.*COMMAND/ {
+    grok {
+      match => { 
+        "message" => "%{SYSLOGTIMESTAMP:timestamp} %{HOSTNAME:hostname} sudo: %{USERNAME:sudo_user} : TTY=%{NOTSPACE:tty} ; PWD=%{PATH:working_dir} ; USER=%{USERNAME:target_user} ; COMMAND=%{GREEDYDATA:command}"
+      }
+    }
+
+    mutate {
+      add_field => { "security_event" => "privilege_escalation" }
+      add_field => { "severity" => "high" }
+    }
+
+    # Flag unusual commands for AI training
+    if [command] =~ /(rm -rf|dd if=|nc -l|python.*socket)/ {
+      mutate {
+        add_tag => [ "suspicious_command" ]
+        add_field => { "ai_training_label" => "malicious" }
+      }
+    }
+  }
+
+  # Network Security Events for Lateral Movement
+  if [logtype] == "network_security" {
+    grok {
+      match => { 
+        "message" => ".*\[%{IP:source_ip}\] > \[%{IP:dest_ip}:%{POSINT:dest_port}\].*%{WORD:action}"
+      }
+    }
+
+    if [action] in ["DENY", "DROP", "REJECT"] {
+      mutate {
+        add_field => { "security_event" => "network_intrusion_attempt" }
+        add_field => { "ai_training_label" => "suspicious" }
+      }
+    }
+  }
+
+  # Elasticsearch Audit Log Processing
+  if [fileset][name] == "audit" {
+    json {
+      source => "message"
+    }
+
+    if [audit_category] == "FAILED_LOGIN" {
+      mutate {
+        add_field => { "security_event" => "elasticsearch_auth_failure" }
+        add_field => { "ai_training_label" => "authentication_failure" }
+      }
+    }
+  }
+
+  # Enrich with GeoIP for source analysis
+  if [source_ip] {
+    geoip {
+      source => "source_ip"
+      target => "geoip"
+    }
+  }
+
+  # Add timestamp for temporal analysis
+  date {
+    match => [ "timestamp", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
+  }
+}
+
+output {
+  # Route to different indices based on security use case
+  if [use_case] == "brute_force_detection" {
+    elasticsearch {
+      hosts => ["{{ elasticsearch_host }}:{{ elasticsearch_port }}"]
+      index => "security-brute-force-%{+YYYY.MM.dd}"
+    }
+  } else if [use_case] == "insider_threat_detection" {
+    elasticsearch {
+      hosts => ["{{ elasticsearch_host }}:{{ elasticsearch_port }}"]
+      index => "security-insider-threat-%{+YYYY.MM.dd}"
+    }
+  } else if [use_case] == "lateral_movement_detection" {
+    elasticsearch {
+      hosts => ["{{ elasticsearch_host }}:{{ elasticsearch_port }}"]
+      index => "security-lateral-movement-%{+YYYY.MM.dd}"
+    }
+  } else {
+    elasticsearch {
+      hosts => ["{{ elasticsearch_host }}:{{ elasticsearch_port }}"]
+      index => "security-general-%{+YYYY.MM.dd}"
+    }
+  }
+}

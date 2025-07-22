@@ -1,0 +1,4 @@
+# Ansible Requirements
+ansible>=2.9
+jinja2>=2.11
+PyYAML>=5.4

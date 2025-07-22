@@ -1,0 +1,9 @@
+# Kibana Configuration for Security Monitoring
+server.port: {{ kibana_port }}
+server.host: "0.0.0.0"
+server.name: "{{ ansible_hostname }}"
+elasticsearch.hosts: ["http://{{ elasticsearch_host }}:{{ elasticsearch_port }}"]
+elasticsearch.username: "kibana_system"
+elasticsearch.password: "changeme"
+xpack.monitoring.ui.container.elasticsearch.enabled: true
+logging.quiet: false

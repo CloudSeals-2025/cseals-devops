@@ -1,0 +1,84 @@
+filebeat.config.modules:
+  path: /etc/filebeat/modules.d/*.yml
+  reload.enabled: true
+  reload.period: 10s
+
+# Security-specific inputs for AI training data
+filebeat.inputs:
+# SSH Authentication Logs for Brute Force Detection
+- type: log
+  enabled: true
+  paths:
+    - /var/log/auth.log
+    - /var/log/secure
+  fields:
+    logtype: authentication
+    use_case: brute_force_detection
+  fields_under_root: true
+  multiline.pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+  multiline.negate: true
+  multiline.match: after
+
+# System Security Events
+- type: log
+  enabled: true
+  paths:
+    - /var/log/syslog
+    - /var/log/messages
+  include_lines: ['Failed password', 'Invalid user', 'authentication failure']
+  fields:
+    logtype: security_event
+    use_case: insider_threat_detection
+  fields_under_root: true
+
+# Network Connection Logs for Lateral Movement Detection
+- type: log
+  enabled: true
+  paths:
+    - /var/log/kern.log
+  include_lines: ['DENY', 'DROP', 'REJECT']
+  fields:
+    logtype: network_security
+    use_case: lateral_movement_detection
+  fields_under_root: true
+
+# Audit Logs for Privileged Access Monitoring
+- type: log
+  enabled: true  
+  paths:
+    - /var/log/audit/audit.log
+  fields:
+    logtype: audit
+    use_case: privilege_escalation
+  fields_under_root: true
+
+processors:
+# Enhance logs with security context
+- add_host_metadata:
+    when.not.contains.tags: forwarded
+- add_docker_metadata: ~
+- add_kubernetes_metadata: ~
+
+# Extract source IPs for geolocation
+- dissect:
+    tokenizer: "%{timestamp} %{hostname} sshd[%{pid}]: Failed password for %{user} from %{source_ip} port %{port} ssh2"
+    field: "message"
+    target_prefix: "ssh"
+    when:
+      contains:
+        message: "Failed password"
+
+# Tag suspicious activities
+- add_tags:
+    tags: [suspicious_auth]
+    when:
+      regexp:
+        message: "(Failed password|Invalid user|authentication failure)"
+
+output.logstash:
+  hosts: ["{{ elasticsearch_host }}:5044"]
+
+# Enable monitoring for security analytics
+monitoring.enabled: true
+monitoring.elasticsearch:
+  hosts: ["{{ elasticsearch_host }}:{{ elasticsearch_port }}"]

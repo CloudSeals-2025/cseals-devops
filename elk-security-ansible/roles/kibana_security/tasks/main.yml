@@ -1,0 +1,26 @@
+---
+- name: Install Kibana
+  package:
+    name: kibana
+    state: present
+
+- name: Configure Kibana
+  template:
+    src: kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    backup: yes
+  notify: restart kibana
+
+- name: Start and enable Kibana service
+  systemd:
+    name: kibana
+    state: started
+    enabled: yes
+
+- name: Wait for Kibana to start
+  uri:
+    url: "http://{{ ansible_default_ipv4.address }}:{{ kibana_port }}"
+    method: GET
+    status_code: 200
+  retries: 10
+  delay: 30

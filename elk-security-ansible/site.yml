@@ -1,0 +1,19 @@
+---
+- name: Deploy ELK Security Monitoring for AI Training
+  hosts: elk_servers
+  become: yes
+  vars_files:
+    - vars/security_config.yml
+
+  roles:
+    - elasticsearch_security
+    - logstash_security
+    - kibana_security
+    - filebeat_security
+
+  post_tasks:
+    - name: Configure security dashboards
+      include_tasks: tasks/setup_security_dashboards.yml
+
+    - name: Setup AI training data exports
+      include_tasks: tasks/setup_ai_data_exports.yml

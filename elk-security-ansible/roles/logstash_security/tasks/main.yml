@@ -1,0 +1,40 @@
+---
+- name: Install Java (required for Logstash)
+  package:
+    name: openjdk-11-jdk
+    state: present
+
+- name: Add Elastic repository key
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+
+- name: Add Elastic repository
+  apt_repository:
+    repo: "deb https://artifacts.elastic.co/packages/8.x/apt stable main"
+    state: present
+
+- name: Install Logstash
+  package:
+    name: logstash
+    state: present
+
+- name: Create Logstash security pipeline configuration
+  template:
+    src: logstash_security.conf.j2
+    dest: /etc/logstash/conf.d/security.conf
+    backup: yes
+  notify: restart logstash
+
+- name: Configure Logstash JVM options
+  template:
+    src: jvm.options.j2
+    dest: /etc/logstash/jvm.options
+    backup: yes
+  notify: restart logstash
+
+- name: Start and enable Logstash service
+  systemd:
+    name: logstash
+    state: started
+    enabled: yes

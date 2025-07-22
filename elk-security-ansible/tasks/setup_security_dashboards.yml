@@ -1,0 +1,38 @@
+---
+# Security Dashboards Setup for AI Training
+- name: Create security index patterns
+  uri:
+    url: "http://{{ ansible_default_ipv4.address }}:{{ kibana_port }}/api/saved_objects/index-pattern/security-*"
+    method: POST
+    body_format: json
+    headers:
+      Content-Type: application/json
+      kbn-xsrf: true
+    body:
+      attributes:
+        title: "security-*"
+        timeFieldName: "@timestamp"
+    status_code: [200, 409]
+
+- name: Import security dashboards
+  uri:
+    url: "http://{{ ansible_default_ipv4.address }}:{{ kibana_port }}/api/saved_objects/_import"
+    method: POST
+    headers:
+      kbn-xsrf: true
+    body_format: form-multipart
+    body:
+      file:
+        content: |
+          {"version":"8.11.0","objects":[
+            {
+              "id":"security-overview-dashboard",
+              "type":"dashboard",
+              "attributes":{
+                "title":"Security Overview Dashboard",
+                "description":"Security monitoring overview for AI training data"
+              }
+            }
+          ]}
+        filename: security_dashboards.ndjson
+    status_code: [200, 409]

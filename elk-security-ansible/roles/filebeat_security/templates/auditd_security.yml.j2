@@ -1,0 +1,14 @@
+# Auditd module configuration for security monitoring  
+- module: auditd
+  log:
+    enabled: true
+    var.paths: ["/var/log/audit/audit.log"]
+    # Filter for security-relevant audit events
+    include_lines: [
+      'type=SYSCALL',
+      'type=LOGIN',
+      'type=USER_AUTH',
+      'type=CRED_DISP',
+      'type=USER_START',
+      'type=USER_END'
+    ]

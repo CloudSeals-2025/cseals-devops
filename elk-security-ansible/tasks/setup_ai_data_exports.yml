@@ -1,0 +1,29 @@
+---
+# AI Training Data Export Tasks
+- name: Create AI training data export directory
+  file:
+    path: /opt/elk-ai-training
+    state: directory
+    mode: '0755'
+
+- name: Install Python requirements for data export
+  pip:
+    name:
+      - elasticsearch
+      - pandas
+      - numpy
+    state: present
+
+- name: Create AI training data export script
+  template:
+    src: export_ai_training_data.py.j2
+    dest: /opt/elk-ai-training/export_ai_training_data.py
+    mode: '0755'
+
+- name: Setup cron job for daily AI training data export
+  cron:
+    name: "Export security data for AI training"
+    minute: "0"
+    hour: "2"
+    job: "/usr/bin/python3 /opt/elk-ai-training/export_ai_training_data.py"
+    user: root

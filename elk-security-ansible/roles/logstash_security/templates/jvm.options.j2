@@ -1,0 +1,11 @@
+-Xms1g
+-Xmx1g
+-XX:+UseG1GC
+-XX:MaxGCPauseMillis=200
+-XX:ParallelGCThreads=2
+-XX:G1HeapRegionSize=16m
+-XX:G1NewSizePercent=30
+-XX:G1MaxNewSizePercent=40
+-XX:+UseCMSInitiatingOccupancyOnly
+-XX:CMSInitiatingOccupancyFraction=75
+-XX:+CMSScavengeBeforeRemark

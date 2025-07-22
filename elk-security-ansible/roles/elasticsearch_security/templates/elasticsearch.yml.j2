@@ -1,0 +1,18 @@
+# Elasticsearch Configuration for Security Monitoring
+cluster.name: {{ elk_cluster_name }}
+node.name: ${HOSTNAME}
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+network.host: 0.0.0.0
+http.port: {{ elasticsearch_port }}
+discovery.type: single-node
+
+# Security settings
+xpack.security.enabled: false
+xpack.monitoring.collection.enabled: true
+
+# Index lifecycle management
+action.destructive_requires_name: true
+
+# Memory settings
+bootstrap.memory_lock: false
